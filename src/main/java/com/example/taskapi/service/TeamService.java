@@ -1,14 +1,19 @@
 package com.example.taskapi.service;
 
+import com.example.taskapi.dto.team.TeamResponseDto;
+import com.example.taskapi.mappers.TeamMapper;
 import com.example.taskapi.models.Team;
 import com.example.taskapi.models.TeamMembership;
 import com.example.taskapi.models.User;
 import com.example.taskapi.repository.TeamMembershipRepository;
 import com.example.taskapi.repository.TeamRepository;
 import com.example.taskapi.repository.UserRepository;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+@Service
 public class TeamService {
     private final TeamRepository teamRepository;
     private final TeamMembershipRepository teamMembershipRepository;
@@ -19,7 +24,7 @@ public class TeamService {
         this.teamMembershipRepository = teamMembershipRepository;
         this.userRepository = userRepository;
     }
-    public Team createTeam(String name, Long creatorId) {
+    public TeamResponseDto createTeam(String name, Long creatorId) {
 
         User creator = userRepository.findById(creatorId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -30,7 +35,6 @@ public class TeamService {
 
         teamRepository.save(team);
 
-        // add creator as TEAM_LEAD
         TeamMembership membership = new TeamMembership();
         membership.setUser(creator);
         membership.setTeam(team);
@@ -39,7 +43,7 @@ public class TeamService {
 
         teamMembershipRepository.save(membership);
 
-        return team;
+        return TeamMapper.toDto(team);
     }
 
     public void addUserToTeam(Long teamId, Long userId) {
@@ -63,5 +67,16 @@ public class TeamService {
         membership.setJoinedAt(LocalDateTime.now());
 
         teamMembershipRepository.save(membership);
+    }
+    public List<TeamResponseDto> getAll(){
+        return teamRepository.findAll()
+                .stream()
+                .map(TeamMapper::toDto)
+                .toList();
+
+    }
+
+    public void DeleteTeam(Long teamId){
+        teamRepository.deleteById(teamId);
     }
 }
