@@ -7,6 +7,7 @@ import com.example.taskapi.models.Role;
 import com.example.taskapi.models.User;
 import com.example.taskapi.repository.RoleRepository;
 import com.example.taskapi.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -15,9 +16,11 @@ import java.util.List;
 public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    public UserService(UserRepository userRepository, RoleRepository roleRepository){
+    private final PasswordEncoder passwordEncoder;
+    public UserService(UserRepository userRepository, RoleRepository roleRepository,PasswordEncoder passwordEncoder){
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public UserResponseDto createUser(UserRequestDto requestDto) {
@@ -25,6 +28,7 @@ public class UserService {
             throw new RuntimeException("The user exists already");
         }
         User user = UserMapper.toEntity(requestDto);
+        user.setPassword(passwordEncoder.encode(requestDto.getPassword()));
 
         Role role = roleRepository.findByName("USER")
                 .orElseThrow(() -> new RuntimeException("Role not found"));
