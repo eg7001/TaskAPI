@@ -10,8 +10,8 @@ public class TaskMapper {
         dto.setId(task.getId());
         dto.setTitle(task.getTitle());
         dto.setStatus(task.getStatus());
-        dto.setAssignedTo(task.getAssignedTo().getUsername());
-        dto.setTeamName(task.getTeam().getName());
+        dto.setAssignedTo(task.getAssignedTo() != null ? task.getAssignedTo().getUsername() : "Unassigned");
+        dto.setTeamName(task.getTeam() != null ? task.getTeam().getName() : "No team");
         dto.setDeadline(task.getDeadline());
         return dto;
     }

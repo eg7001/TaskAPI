@@ -26,5 +26,9 @@ public class UserController {
     public List<UserResponseDto> getAllUsers(){
         return userService.getAllUsers();
     }
+    @PostMapping("/{userId}/roles")
+    public void assignRole(@PathVariable Long userId, @RequestBody String roleName) {
+        userService.assignRole(userId, roleName);
+    }
 
 }
