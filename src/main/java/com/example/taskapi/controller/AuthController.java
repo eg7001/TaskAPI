@@ -2,6 +2,7 @@ package com.example.taskapi.controller;
 import com.example.taskapi.dto.auth.AuthResponseDto;
 import com.example.taskapi.dto.auth.LoginRequestDto;
 import com.example.taskapi.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -17,7 +18,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public AuthResponseDto login(@RequestBody LoginRequestDto requestDto){
+    public AuthResponseDto login(@Valid @RequestBody LoginRequestDto requestDto){
         String token = authService.login(requestDto.getEmail(),requestDto.getPassword());
         return new AuthResponseDto(token);
     }

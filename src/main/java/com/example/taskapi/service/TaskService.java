@@ -5,6 +5,8 @@ import com.example.taskapi.dto.task.TaskResponseDto;
 import com.example.taskapi.dto.taskComment.TaskCommentRequestDto;
 import com.example.taskapi.dto.taskComment.TaskCommentResponseDto;
 import com.example.taskapi.dto.user.UserRequestDto;
+import com.example.taskapi.exceptions.ResourceNotFoundException;
+import com.example.taskapi.exceptions.UnauthorizedException;
 import com.example.taskapi.mappers.TaskMapper;
 import com.example.taskapi.models.Task;
 import com.example.taskapi.models.TaskComment;
@@ -37,13 +39,13 @@ public class TaskService {
                 .anyMatch(r -> r.getName().equals("ADMIN"));
 
         if (!isAdmin) {
-            throw new RuntimeException("Only admins can create tasks");
+            throw new UnauthorizedException("Only admins can create tasks");
         }
         Team team = teamRepository.findById(requestDto.getTeamId())
-                .orElseThrow(() -> new RuntimeException("Team Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Team Not Found"));
 
         User assignedUser = userRepository.findByIdWithRoles(requestDto.getAssignedToUserId())
-                .orElseThrow(() -> new RuntimeException("Assigned User Was Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Assigned User Was Not Found"));
 
         Task task = TaskMapper.toTask(requestDto);
         task.setTeam(team);
@@ -80,7 +82,7 @@ public class TaskService {
 
     public TaskResponseDto getTaskById(Long id){
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User was not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User was not found"));
         return TaskMapper.toDto(task);
     }
 
@@ -89,18 +91,18 @@ public class TaskService {
                 .anyMatch(r -> r.getName().equals("ADMIN"));
 
         if (!isAdmin) {
-            throw new RuntimeException("Only admins can update tasks");
+            throw new UnauthorizedException("Only admins can update tasks");
         }
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("Task was not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Task was not found"));
         task.setTitle(dto.getTitle());
         task.setDescription(dto.getDescription());
         task.setDeadline(dto.getDeadline());
 
         Team team = teamRepository.findById(dto.getTeamId())
-                .orElseThrow(() -> new RuntimeException("The Team Was Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("The Team Was Not Found"));
         User assignedUser = userRepository.findById(dto.getAssignedToUserId())
-                .orElseThrow(() -> new RuntimeException("The Assigned User Was Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("The Assigned User Was Not Found"));
 
         task.setTeam(team);
         task.setAssignedTo(assignedUser);
@@ -110,7 +112,7 @@ public class TaskService {
 
     public TaskResponseDto updateStatus(Long taskId, String statu){
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("The Task Was Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("The Task Was Not Found"));
         task.setStatus(statu);
         return TaskMapper.toDto(taskRepository.save(task));
     }
@@ -119,7 +121,7 @@ public class TaskService {
         boolean isAdmin = currentUser.getRoles().stream()
                 .anyMatch(r -> r.getName().equals("ADMIN"));
         if (!isAdmin) {
-            throw new RuntimeException("Only admins can delete tasks");
+            throw new UnauthorizedException("Only admins can delete tasks");
         }
         taskRepository.deleteById(taskId);
     }
@@ -127,13 +129,13 @@ public class TaskService {
     public TaskCommentResponseDto addComment(Long taskId, User currentUser, TaskCommentRequestDto dto){
 
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("The Task Was Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("The Task Was Not Found"));
         boolean isAdmin = currentUser.getRoles().stream()
                 .anyMatch(r -> r.getName().equals("ADMIN"));
         boolean isAssigned = task.getAssignedTo().getId().equals(currentUser.getId());
 
         if (!isAdmin && !isAssigned) {
-            throw new RuntimeException("You can only comment on your own tasks");
+            throw new UnauthorizedException("You can only comment on your own tasks");
         }
         TaskComment taskComment = new TaskComment();
         taskComment.setTask(task);

@@ -2,6 +2,7 @@ package com.example.taskapi.service;
 
 import com.example.taskapi.dto.user.UserRequestDto;
 import com.example.taskapi.dto.user.UserResponseDto;
+import com.example.taskapi.exceptions.ResourceNotFoundException;
 import com.example.taskapi.mappers.UserMapper;
 import com.example.taskapi.models.Role;
 import com.example.taskapi.models.User;
@@ -31,7 +32,7 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(requestDto.getPassword()));
 
         Role role = roleRepository.findByName("USER")
-                .orElseThrow(() -> new RuntimeException("Role not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
         user.getRoles().add(role);
 
         User saved = userRepository.save(user);
@@ -41,7 +42,7 @@ public class UserService {
     }
     public UserResponseDto getUserById(Long id) {
         User user =  userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         return UserMapper.toDto(user);
     }
     public List<UserResponseDto> getAllUsers() {
@@ -58,10 +59,10 @@ public class UserService {
     public void assignRole(Long userId, String roleName) {
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Role role = roleRepository.findByName(roleName)
-                .orElseThrow(() -> new RuntimeException("Role not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
 
         user.getRoles().add(role);
 

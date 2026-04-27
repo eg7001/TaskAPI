@@ -3,6 +3,7 @@ package com.example.taskapi.controller;
 import com.example.taskapi.dto.user.UserRequestDto;
 import com.example.taskapi.dto.user.UserResponseDto;
 import com.example.taskapi.service.UserService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -14,8 +15,9 @@ public class UserController {
     public UserController(UserService userService){
         this.userService= userService;
     }
+
     @PostMapping
-    public UserResponseDto createUser(@RequestBody UserRequestDto requestDto){
+    public UserResponseDto createUser(@Valid @RequestBody UserRequestDto requestDto){
         return userService.createUser(requestDto);
     }
     @GetMapping("/{id}")
@@ -26,8 +28,9 @@ public class UserController {
     public List<UserResponseDto> getAllUsers(){
         return userService.getAllUsers();
     }
+
     @PostMapping("/{userId}/roles")
-    public void assignRole(@PathVariable Long userId, @RequestBody String roleName) {
+    public void assignRole(@PathVariable Long userId,@Valid @RequestBody String roleName) {
         userService.assignRole(userId, roleName);
     }
 

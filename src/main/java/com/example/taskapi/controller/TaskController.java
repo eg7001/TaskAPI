@@ -7,6 +7,8 @@ import com.example.taskapi.dto.taskComment.TaskCommentResponseDto;
 import com.example.taskapi.models.TaskComment;
 import com.example.taskapi.models.User;
 import com.example.taskapi.service.TaskService;
+import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,8 +40,9 @@ public class TaskController {
         return taskService.getTaskById(taskId);
     }
 
+
     @PutMapping("/{taskId}/update")
-    public TaskResponseDto updateTask(@PathVariable Long taskId,@RequestBody TaskRequestDto dto,Authentication authentication){
+    public TaskResponseDto updateTask(@PathVariable Long taskId, @Valid @RequestBody TaskRequestDto dto,Authentication authentication){
         User currentUser = (User) authentication.getPrincipal();
         return taskService.updateTask(taskId,dto,currentUser);
     }
@@ -54,8 +57,9 @@ public class TaskController {
         taskService.deleteTask(taskId,currentUser);
     }
 
+
     @PostMapping("/{taskId}/comments")
-    public TaskCommentResponseDto addAComment(@PathVariable Long taskId,Authentication authentication, @RequestBody TaskCommentRequestDto dto){
+    public TaskCommentResponseDto addAComment(@PathVariable Long taskId,Authentication authentication,@Valid @RequestBody TaskCommentRequestDto dto){
         User currentUser = (User) authentication.getPrincipal();
         return taskService.addComment(taskId, currentUser,dto);
     }

@@ -1,5 +1,6 @@
 package com.example.taskapi.service;
 
+import com.example.taskapi.exceptions.ResourceNotFoundException;
 import com.example.taskapi.models.User;
 import com.example.taskapi.repository.UserRepository;
 import com.example.taskapi.security.JwtUtil;
@@ -20,10 +21,10 @@ public class AuthService {
     public String login(String email, String password) {
 
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid credentials"));
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+            throw new ResourceNotFoundException("Invalid credentials");
         }
 
         return jwtUtil.generateToken(user);

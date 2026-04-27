@@ -4,6 +4,7 @@ import com.example.taskapi.dto.team.TeamRequestDto;
 import com.example.taskapi.dto.team.TeamResponseDto;
 import com.example.taskapi.models.User;
 import com.example.taskapi.service.TeamService;
+import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,8 +22,9 @@ public class TeamController {
        return teamService.getAll();
     }
 
+
     @PostMapping()
-    public TeamResponseDto createTeam(@RequestBody TeamRequestDto requestDto, Authentication authentication){
+    public TeamResponseDto createTeam(@Valid @RequestBody TeamRequestDto requestDto, Authentication authentication){
         User currentUser = (User) authentication.getPrincipal();
         return teamService.createTeam(requestDto.getName(),currentUser.getId());
     }

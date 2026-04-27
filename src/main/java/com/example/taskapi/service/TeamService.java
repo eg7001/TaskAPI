@@ -1,6 +1,7 @@
 package com.example.taskapi.service;
 
 import com.example.taskapi.dto.team.TeamResponseDto;
+import com.example.taskapi.exceptions.ResourceNotFoundException;
 import com.example.taskapi.mappers.TeamMapper;
 import com.example.taskapi.models.Team;
 import com.example.taskapi.models.TeamMembership;
@@ -27,7 +28,7 @@ public class TeamService {
     public TeamResponseDto createTeam(String name, Long creatorId) {
 
         User creator = userRepository.findById(creatorId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         Team team = new Team();
         team.setName(name);
@@ -49,10 +50,10 @@ public class TeamService {
     public void addUserToTeam(Long teamId, Long userId) {
 
         Team team = teamRepository.findById(teamId)
-                .orElseThrow(() -> new RuntimeException("Team not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         // prevent duplicates
         teamMembershipRepository.findByUserIdAndTeamId(userId, teamId)
