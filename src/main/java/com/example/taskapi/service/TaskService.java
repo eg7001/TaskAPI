@@ -38,22 +38,38 @@ public class TaskService {
         boolean isAdmin = currentUser.getRoles().stream()
                 .anyMatch(r -> r.getName().equals("ADMIN"));
 
-        if (!isAdmin) {
-            throw new UnauthorizedException("Only admins can create tasks");
+        boolean isTeamLead = teamMembershipRepository
+                .findByUserIdAndTeamIdAndRole(
+                        currentUser.getId(),
+                        requestDto.getTeamId(),
+                        "TEAM_LEAD"
+                ).isPresent();
+
+        if (!isAdmin && !isTeamLead) {
+            throw new UnauthorizedException("Only admins or team leads can create tasks");
         }
+
         Team team = teamRepository.findById(requestDto.getTeamId())
                 .orElseThrow(() -> new ResourceNotFoundException("Team Not Found"));
 
         User assignedUser = userRepository.findByIdWithRoles(requestDto.getAssignedToUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Assigned User Was Not Found"));
 
+        if (!isAdmin) {
+            boolean assignedUserInTeam = teamMembershipRepository
+                    .findByUserIdAndTeamId(assignedUser.getId(), team.getId())
+                    .isPresent();
+            if (!assignedUserInTeam) {
+                throw new UnauthorizedException("You can only assign tasks to members of your team");
+            }
+        }
+
         Task task = TaskMapper.toTask(requestDto);
         task.setTeam(team);
         task.setCreatedBy(currentUser);
         task.setAssignedTo(assignedUser);
         task.setStatus("TODO");
-        Task saved = taskRepository.save(task);
-        return TaskMapper.toDto(saved);
+        return TaskMapper.toDto(taskRepository.save(task));
     }
 
     public List<TaskResponseDto> getAllTasks(User currentUser) {
@@ -74,39 +90,42 @@ public class TaskService {
             return taskRepository.findByTeamIdIn(leadTeamIds)
                     .stream().map(TaskMapper::toDto).toList();
         }
-
         // Regular member sees only their assigned tasks
         return taskRepository.findByAssignedTo(currentUser)
                 .stream().map(TaskMapper::toDto).toList();
     }
-
     public TaskResponseDto getTaskById(Long id){
         Task task = taskRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User was not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Task was not found"));
         return TaskMapper.toDto(task);
     }
 
     public TaskResponseDto updateTask(Long taskId,TaskRequestDto dto,User currentUser){
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+
         boolean isAdmin = currentUser.getRoles().stream()
                 .anyMatch(r -> r.getName().equals("ADMIN"));
 
-        if (!isAdmin) {
-            throw new UnauthorizedException("Only admins can update tasks");
+        boolean isTeamLead = teamMembershipRepository
+                .findByUserIdAndTeamIdAndRole(
+                        currentUser.getId(),
+                        task.getTeam().getId(),
+                        "TEAM_LEAD"
+                ).isPresent();
+
+        if (!isAdmin && !isTeamLead) {
+            throw new UnauthorizedException("Only admins or team leads can update tasks");
         }
-        Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new ResourceNotFoundException("Task was not found"));
         task.setTitle(dto.getTitle());
         task.setDescription(dto.getDescription());
         task.setDeadline(dto.getDeadline());
-
         Team team = teamRepository.findById(dto.getTeamId())
                 .orElseThrow(() -> new ResourceNotFoundException("The Team Was Not Found"));
         User assignedUser = userRepository.findById(dto.getAssignedToUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("The Assigned User Was Not Found"));
-
         task.setTeam(team);
         task.setAssignedTo(assignedUser);
-
         return TaskMapper.toDto(taskRepository.save(task));
     }
 
@@ -118,10 +137,21 @@ public class TaskService {
     }
 
     public void deleteTask(Long taskId,User currentUser) {
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+
         boolean isAdmin = currentUser.getRoles().stream()
                 .anyMatch(r -> r.getName().equals("ADMIN"));
-        if (!isAdmin) {
-            throw new UnauthorizedException("Only admins can delete tasks");
+
+        boolean isTeamLead = teamMembershipRepository
+                .findByUserIdAndTeamIdAndRole(
+                        currentUser.getId(),
+                        task.getTeam().getId(),
+                        "TEAM_LEAD"
+                ).isPresent();
+
+        if (!isAdmin && !isTeamLead) {
+            throw new UnauthorizedException("Only admins or team leads can delete tasks");
         }
         taskRepository.deleteById(taskId);
     }

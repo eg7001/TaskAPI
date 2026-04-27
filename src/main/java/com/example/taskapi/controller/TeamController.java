@@ -29,7 +29,8 @@ public class TeamController {
         return teamService.createTeam(requestDto.getName(),currentUser.getId());
     }
     @PostMapping("/{teamId}/users/{userId}")
-    public void addUserToTeam(@PathVariable Long teamId,@PathVariable Long userId){
-        teamService.addUserToTeam(teamId,userId);
+    public void addUserToTeam(@PathVariable Long teamId,@PathVariable Long userId, Authentication authentication){
+        User currentUser = (User) authentication.getPrincipal();
+        teamService.addUserToTeam(teamId,userId,currentUser);
     }
 }

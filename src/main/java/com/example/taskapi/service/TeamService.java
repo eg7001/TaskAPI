@@ -2,6 +2,7 @@ package com.example.taskapi.service;
 
 import com.example.taskapi.dto.team.TeamResponseDto;
 import com.example.taskapi.exceptions.ResourceNotFoundException;
+import com.example.taskapi.exceptions.UnauthorizedException;
 import com.example.taskapi.mappers.TeamMapper;
 import com.example.taskapi.models.Team;
 import com.example.taskapi.models.TeamMembership;
@@ -47,7 +48,18 @@ public class TeamService {
         return TeamMapper.toDto(team);
     }
 
-    public void addUserToTeam(Long teamId, Long userId) {
+    public void addUserToTeam(Long teamId, Long userId, User currentUser) {
+
+        boolean isAdmin = currentUser.getRoles().stream()
+                .anyMatch(r -> r.getName().equals("ADMIN"));
+
+        boolean isTeamLead = teamMembershipRepository
+                .findByUserIdAndTeamIdAndRole(currentUser.getId(), teamId, "TEAM_LEAD")
+                .isPresent();
+
+        if (!isAdmin && !isTeamLead) {
+            throw new UnauthorizedException("Only admins or team leads can add members");
+        }
 
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
@@ -55,11 +67,8 @@ public class TeamService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        // prevent duplicates
         teamMembershipRepository.findByUserIdAndTeamId(userId, teamId)
-                .ifPresent(m -> {
-                    throw new RuntimeException("User already in team");
-                });
+                .ifPresent(m -> { throw new RuntimeException("User already in team"); });
 
         TeamMembership membership = new TeamMembership();
         membership.setUser(user);
@@ -77,7 +86,7 @@ public class TeamService {
 
     }
 
-    public void DeleteTeam(Long teamId){
+    public void deleteTeam(Long teamId){
         teamRepository.deleteById(teamId);
     }
 }

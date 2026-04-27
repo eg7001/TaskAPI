@@ -36,17 +36,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/user").permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/api/tasks").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/tasks/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/tasks/**").hasRole("ADMIN")
-
+                        // All task and team routes just require authentication
+                        // actual role checks happen in the service layer
                         .requestMatchers("/api/tasks/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/team").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.POST, "/api/team/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.GET, "/api/team/**").authenticated()
                         .requestMatchers("/api/team/**").authenticated()
 
                         .anyRequest().authenticated()
+
+
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 

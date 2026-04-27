@@ -2,6 +2,7 @@ package com.example.taskapi.service;
 
 import com.example.taskapi.dto.user.UserRequestDto;
 import com.example.taskapi.dto.user.UserResponseDto;
+import com.example.taskapi.exceptions.DuplicateResourceException;
 import com.example.taskapi.exceptions.ResourceNotFoundException;
 import com.example.taskapi.mappers.UserMapper;
 import com.example.taskapi.models.Role;
@@ -26,7 +27,7 @@ public class UserService {
 
     public UserResponseDto createUser(UserRequestDto requestDto) {
         if(userRepository.existsByEmail(requestDto.getEmail())){
-            throw new RuntimeException("The user exists already");
+            throw new DuplicateResourceException("The user exists already");
         }
         User user = UserMapper.toEntity(requestDto);
         user.setPassword(passwordEncoder.encode(requestDto.getPassword()));
