@@ -1,6 +1,7 @@
 package com.example.taskapi.service;
 
 import com.example.taskapi.dto.team.TeamResponseDto;
+import com.example.taskapi.exceptions.DuplicateResourceException;
 import com.example.taskapi.exceptions.ResourceNotFoundException;
 import com.example.taskapi.exceptions.UnauthorizedException;
 import com.example.taskapi.mappers.TeamMapper;
@@ -68,7 +69,7 @@ public class TeamService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         teamMembershipRepository.findByUserIdAndTeamId(userId, teamId)
-                .ifPresent(m -> { throw new RuntimeException("User already in team"); });
+                .ifPresent(m -> { throw new DuplicateResourceException("User already in team"); });
 
         TeamMembership membership = new TeamMembership();
         membership.setUser(user);
