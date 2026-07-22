@@ -94,9 +94,26 @@ public class TaskService {
         return taskRepository.findByAssignedTo(currentUser)
                 .stream().map(TaskMapper::toDto).toList();
     }
-    public TaskResponseDto getTaskById(Long id){
+    public TaskResponseDto getTaskById(Long id, User currentUser){
         Task task = taskRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Task was not found"));
+
+        boolean isAdmin = currentUser.getRoles().stream()
+                .anyMatch(r -> r.getName().equals("ADMIN"));
+
+        boolean isTeamLead = teamMembershipRepository
+                .findByUserIdAndTeamIdAndRole(
+                        currentUser.getId(),
+                        task.getTeam().getId(),
+                        "TEAM_LEAD"
+                ).isPresent();
+
+        boolean isAssignee = task.getAssignedTo() != null
+                && task.getAssignedTo().getId().equals(currentUser.getId());
+
+        if (!isAdmin && !isTeamLead && !isAssignee) {
+            throw new UnauthorizedException("You do not have access to this task");
+        }
         return TaskMapper.toDto(task);
     }
 

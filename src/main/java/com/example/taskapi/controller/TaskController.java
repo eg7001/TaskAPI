@@ -36,8 +36,9 @@ public class TaskController {
     }
 
     @GetMapping("/{taskId}")
-    public TaskResponseDto getById(@PathVariable Long taskId){
-        return taskService.getTaskById(taskId);
+    public TaskResponseDto getById(@PathVariable Long taskId, Authentication authentication){
+        User currentUser = (User) authentication.getPrincipal();
+        return taskService.getTaskById(taskId, currentUser);
     }
 
 

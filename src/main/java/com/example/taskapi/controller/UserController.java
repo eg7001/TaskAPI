@@ -1,9 +1,11 @@
 package com.example.taskapi.controller;
 
+import com.example.taskapi.dto.user.AssignRoleDto;
 import com.example.taskapi.dto.user.UserRequestDto;
 import com.example.taskapi.dto.user.UserResponseDto;
 import com.example.taskapi.service.UserService;
 import jakarta.validation.Valid;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -30,8 +32,9 @@ public class UserController {
     }
 
     @PostMapping("/{userId}/roles")
-    public void assignRole(@PathVariable Long userId,@Valid @RequestBody String roleName) {
-        userService.assignRole(userId, roleName);
+    @PreAuthorize("hasRole('ADMIN')")
+    public void assignRole(@PathVariable Long userId, @Valid @RequestBody AssignRoleDto dto) {
+        userService.assignRole(userId, dto.getRoleName());
     }
 
 }
