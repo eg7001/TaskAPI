@@ -48,8 +48,9 @@ public class TaskController {
         return taskService.updateTask(taskId,dto,currentUser);
     }
     @PatchMapping("/{taskId}/updateStatus/{status}")
-    public TaskResponseDto updateTaskStatus(@PathVariable Long taskId,@PathVariable String status){
-        return taskService.updateStatus(taskId,status);
+    public TaskResponseDto updateTaskStatus(@PathVariable Long taskId,@PathVariable String status, Authentication authentication){
+        User currentUser = (User) authentication.getPrincipal();
+        return taskService.updateStatus(taskId,status, currentUser);
     }
 
     @DeleteMapping("/{taskId}")

@@ -146,9 +146,16 @@ public class TaskService {
         return TaskMapper.toDto(taskRepository.save(task));
     }
 
-    public TaskResponseDto updateStatus(Long taskId, String statu){
+    public TaskResponseDto updateStatus(Long taskId, String statu,User currentUser){
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("The Task Was Not Found"));
+        boolean isAdmin = currentUser.getRoles().stream()
+                        .anyMatch(r -> r.getName().equals("ADMIN"));
+        boolean isTeamLead = teamMembershipRepository
+                .findByUserIdAndTeamIdAndRole(currentUser.getId(), task.getTeam().getId(),"TEAM_LEAD").isPresent();
+        if(!isAdmin && !isTeamLead){
+            throw new UnauthorizedException("Only Admins and TeamLeads can update a task status");
+        }
         task.setStatus(statu);
         return TaskMapper.toDto(taskRepository.save(task));
     }
