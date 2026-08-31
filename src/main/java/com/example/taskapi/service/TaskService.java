@@ -173,13 +173,11 @@ public class TaskService {
                         task.getTeam().getId(),
                         "TEAM_LEAD"
                 ).isPresent();
-
         if (!isAdmin && !isTeamLead) {
             throw new UnauthorizedException("Only admins or team leads can delete tasks");
         }
         taskRepository.deleteById(taskId);
     }
-
     public TaskCommentResponseDto addComment(Long taskId, User currentUser, TaskCommentRequestDto dto){
 
         Task task = taskRepository.findById(taskId)
